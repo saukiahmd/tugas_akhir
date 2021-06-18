@@ -1,0 +1,7 @@
+halaman produk di tambahakan 
+data 
+Nama produk
+harga produk
+deskripsi produk
+alamat produk
+nomer penjual
