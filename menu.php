@@ -1,6 +1,13 @@
 <?php
 require 'navbar.php';
 require 'koneksi.php';
+require 'CosineSimiliarity.php';
+
+
+
+
+
+
 ?>
 
 
@@ -27,13 +34,14 @@ require 'koneksi.php';
   <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
   <link href="lib/flaticon/font/flaticon.css" rel="stylesheet">
   <link href="lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet" />
-  
+
   <!-- css bintang -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
 
 
   <!-- Template Stylesheet -->
+  <link href="fontawesome/css/all.css" rel="stylesheet">
   <link href="css/style.css" rel="stylesheet">
 </head>
 
@@ -77,7 +85,7 @@ require 'koneksi.php';
             <option value="0">Pilih Semua</option>
           </select>
         </div>
-        
+
         <div class="col-3">
           <select name="kategoriwilayah" id="kategoriwilayah" class="form-control btn btn-warning filter" onchange="kategoriwilayah()">
             <option value="0">Pilih Kategori wilayah</option>
@@ -89,7 +97,7 @@ require 'koneksi.php';
             <option value="0">Pilih Semua</option>
           </select>
         </div>
-        
+
         <div class="col-3">
           <select name="kategori" id="kategori" class="form-control btn btn-warning filter" onchange="kategori()">
             <option value="0">Harga Tertinggi</option>
@@ -101,84 +109,289 @@ require 'koneksi.php';
             <option value="0">Pilih Semua</option>
           </select>
         </div>
-            
+
       </div>
+
+
+
 
 
 
       <div id="row">
-        
-      <div class="row">
-        <?php
-        $halaman = 8;
-        $page = isset($_GET["halaman"]) ? (int)$_GET["halaman"] : 1;
-        $mulai = ($page > 1) ? ($page * $halaman) - $halaman : 0;
-        $result = mysqli_query($koneksi, "SELECT * FROM produk");
-        $total = mysqli_num_rows($result);
-        $pages = ceil($total / $halaman);
-        $query = mysqli_query($koneksi, "select * from produk LIMIT $mulai, $halaman") or die(mysqli_error);
-        $no = $mulai + 1;
+      <h2>Pilihan Produk</h2>
+        <div class="row">
+          <?php
+          $halaman = 8;
+          $page = isset($_GET["halaman"]) ? (int)$_GET["halaman"] : 1;
+          $mulai = ($page > 1) ? ($page * $halaman) - $halaman : 0;
+          $result = mysqli_query($koneksi, "SELECT * FROM produk");
+          $total = mysqli_num_rows($result);
+          $pages = ceil($total / $halaman);
+          $query = mysqli_query($koneksi, "select * from produk LIMIT $mulai, $halaman") or die(mysqli_error);
+          $no = $mulai + 1;
 
 
-        $no = 1;
-        while ($d = mysqli_fetch_array($query)) {
-        ?>
-        
-          <div id="konten" class="col-lg-3 col-md-6 ">
-          
-            <div class="team-item" style="width: 100%;">
-              <div class="team-img" style="height: 200px">
-                <a id="id" href="tampildetail.php?id=<?php echo $d['id_produk']; ?>">
-                  <img id="foto" src="foto_produk/<?php echo $d['foto_produk']; ?>">
-                </a>
-              </div>
-              <div class="team-text">
-                <h2 id="nama" style="font-size: 20px;"><?php echo $d['nama_produk']; ?></h2>
-                <p id="harga">Rp. <?php echo number_format($d['harga_produk']); ?></p>
-                <a href="beli.php?id=<?php echo $d['id_produk']; ?>" class="btn btn-warning mt-3">Beli</a>
+          $no = 1;
+          while ($d = mysqli_fetch_array($query)) {
+          ?>
+
+            <div id="konten" class="col-lg-3 col-md-6 ">
+
+              <div class="team-item" style="width: 100%;">
+                <div class="team-img" style="height: 200px">
+                  <a id="id" href="tampildetail.php?id=<?php echo $d['id_produk']; ?>">
+                    <img id="foto" src="foto_produk/<?php echo $d['foto_produk']; ?>">
+                  </a>
+                </div>
+
+
+                <!-- rating -->
+                <?php
+                //TOTAL DATA PENJUMLAHAN RATING
+                $rating = mysqli_query($koneksi, "SELECT SUM(nilai_rating) AS nilai FROM rating WHERE id_produk = '$d[id_produk]' ");
+
+                //DATA JUMLAH YANG MEMBERIKAN NILAI
+                $count = mysqli_query($koneksi, "SELECT count(nilai_rating) AS nilai FROM rating WHERE id_produk = '$d[id_produk]' ");
+
+                $r = mysqli_fetch_assoc($rating);
+                $c = mysqli_fetch_assoc($count);
+                if ($c['nilai'] == 0) {
+                  $result = 0;
+                } else {
+
+                  $result = $r['nilai'] / $c['nilai'];
+                  $result = number_format((float)$r['nilai'] / $c['nilai'], 1, '.', '');
+                }
+
+                ?>
+                <div class="form-group text-center mt-3 mb-1">
+                  <div class="container d-flex justify-content-center mt-200">
+                    <div class="row">
+                      <div class="col-md-12">
+
+                        <?php
+
+                        for ($x = 1; $x <= 5; $x++) {
+                          if ($result >= $x) {
+
+                            echo '<i class="fas fa-star text-warning"></i>';
+                          } else {
+                            echo '<i class="far fa-star text-warning"></i>';
+                          }
+                        }
+
+                        echo $result;
+
+                        echo '</br>';
+
+                        echo ' Dari (' . $c['nilai'] . ') User';
+                        ?>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- rating -->
+
+
+                <div class="team-text">
+                  <h2 id="nama" style="font-size: 20px;"><?php echo $d['nama_produk']; ?></h2>
+                  <p id="harga">Rp. <?php echo number_format($d['harga_produk']); ?></p>
+                  <a href="beli.php?id=<?php echo $d['id_produk']; ?>" class="btn btn-warning mt-3">Beli</a>
+                </div>
               </div>
             </div>
-          </div>
-        <?php } ?>
+          <?php } ?>
+        </div>
+
+        <nav aria-label="..." style="" class="d-flex justify-content-center">
+          <ul class="pagination text-warning">
+            <?php for ($i = 1; $i <= $pages; $i++) { ?>
+              <li class="page-item"><a class="page-link" href="?halaman=<?php echo $i; ?>"><?php echo $i; ?></a></li>
+            <?php } ?>
+          </ul>
+        </nav>
       </div>
 
-      <nav aria-label="..." style="" class="d-flex justify-content-center">
-        <ul class="pagination text-warning">
-          <?php for ($i = 1; $i <= $pages; $i++) { ?>
-            <li class="page-item"><a class="page-link" href="?halaman=<?php echo $i; ?>"><?php echo $i; ?></a></li>
+
+              
+      <!-- rekomendasi page -->
+
+      <div id="row">
+        <h2>Rekomendasi Untuk Kamu</h2>
+        <div class="row">
+          <?php
+
+          $result = mysqli_query($koneksi, "SELECT * FROM produk");
+
+          $query = $result;
+
+          if(!isset($_SESSION["pembeli"]))
+          {
+          }else{
+             
+            $hasilRating = mysqli_query($koneksi, "with norms as (
+              select id_pembeli,
+                  sum(nilai_rating * nilai_rating) as w2
+              from rating
+              group by id_pembeli
+          )
+          select 
+              x.id_pembeli as ego,y.id_pembeli as v,nx.w2 as x2, ny.w2 as y2,
+              sum(x.nilai_rating * y.nilai_rating) as innerproduct,
+              sum(x.nilai_rating * y.nilai_rating) / sqrt(nx.w2 * ny.w2) as cosinesimilarity
+          from rating as x
+          join rating as y
+              on (x.id_produk=y.id_produk)
+          join norms as nx
+              on (nx.id_pembeli=x.id_pembeli)
+          join norms as ny
+              on (ny.id_pembeli=y.id_pembeli)
+          where x.id_pembeli < y.id_pembeli
+          group by 1,2,3,4
+          order by 6 desc");
+
+            // var_dump($hasilRating->fetch_array());
+            
+            while ($ratings = $hasilRating->fetch_array()){
+              if ($ratings['ego'] == $_SESSION['id_pembeli']|| $ratings['v'] == $_SESSION['id_pembeli'] ) {
+                if ($ratings['cosinesimilarity'] >= 0.5 ){
+                  $queryrating = mysqli_query($koneksi, "SELECT * FROM rating WHERE '$ratings[ego]'=rating.id_pembeli AND '$ratings[v]'=rating.id_pembeli")->fetch_array();
+                  var_dump($queryrating);
+                  // if ($ratings['v'] || $ratings['ego']) {
+                  //   // echo $queryrating;
+                  // }
+                  // echo '('.$ratings['ego'].')','('.$ratings['v'].')','('.$ratings['innerproduct'].')','('.$ratings['cosinesimilarity'].')<br>';
+                 
+                  // echo $queryrating;
+                  // while($qr = mysqli_fetch_assoc($queryrating)){
+                    
+                    
+                      
+     
+          
+                  //   }
+                  
+                  }
+                }
+              }
+            }
+
+          
+          
+          
+          
+
+          $no = 1;
+          while ($d = mysqli_fetch_array($query)) {
+          ?>
+
+            <div id="konten" class="col-lg-3 col-md-6 ">
+
+              <div class="team-item" style="width: 100%;">
+                <div class="team-img" style="height: 200px">
+                  <a id="id" href="tampildetail.php?id=<?php echo $d['id_produk']; ?>">
+                    <img id="foto" src="foto_produk/<?php echo $d['foto_produk']; ?>">
+                  </a>
+                </div>
+
+
+                <!-- rating -->
+                <?php
+                //TOTAL DATA PENJUMLAHAN RATING
+                $rating = mysqli_query($koneksi, "SELECT SUM(nilai_rating) AS nilai FROM rating WHERE id_produk = '$d[id_produk]' ");
+
+                //DATA JUMLAH YANG MEMBERIKAN NILAI
+                $count = mysqli_query($koneksi, "SELECT count(nilai_rating) AS nilai FROM rating WHERE id_produk = '$d[id_produk]' ");
+
+                $r = mysqli_fetch_assoc($rating);
+                $c = mysqli_fetch_assoc($count);
+                if ($c['nilai'] == 0) {
+                  $result = 0;
+                } else {
+
+                  $result = $r['nilai'] / $c['nilai'];
+                  $result = number_format((float)$r['nilai'] / $c['nilai'], 1, '.', '');
+                }
+
+                ?>
+                <div class="form-group text-center mt-3 mb-1">
+                  <div class="container d-flex justify-content-center mt-200">
+                    <div class="row">
+                      <div class="col-md-12">
+
+                        <?php
+
+                        for ($x = 1; $x <= 5; $x++) {
+                          if ($result >= $x) {
+
+                            echo '<i class="fas fa-star text-warning"></i>';
+                          } else {
+                            echo '<i class="far fa-star text-warning"></i>';
+                          }
+                        }
+
+                        echo $result;
+
+                        echo '</br>';
+
+                        echo ' Dari (' . $c['nilai'] . ') User';
+                        ?>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- rating -->
+
+
+                <div class="team-text">
+                  <h2 id="nama" style="font-size: 20px;"><?php echo $d['nama_produk']; ?></h2>
+                  <p id="harga">Rp. <?php echo number_format($d['harga_produk']); ?></p>
+                  <a href="beli.php?id=<?php echo $d['id_produk']; ?>" class="btn btn-warning mt-3">Beli</a>
+                </div>
+              </div>
+            </div>
           <?php } ?>
-        </ul>
-      </nav>
+        </div>
+
+
       </div>
+
+      <!-- akhir rekomendasi page -->
+
+
+
 
     </div>
   </div>
-    <!-- Team End -->
+  <!-- Team End -->
 
 
-    <a href="#" class="back-to-top"><i class="fa fa-chevron-up"></i></a>
-
-    <!-- JavaScript Libraries -->
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
-    <script src="lib/easing/easing.min.js"></script>
-    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
-    <script src="lib/tempusdominus/js/moment.min.js"></script>
-    <script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
-    <script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+  
 
 
-    <!-- script bintang -->
+  <a href="#" class="back-to-top"><i class="fa fa-chevron-up"></i></a>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+  <!-- JavaScript Libraries -->
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+  <script src="lib/easing/easing.min.js"></script>
+  <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+  <script src="lib/tempusdominus/js/moment.min.js"></script>
+  <script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
+  <script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
 
-    <!-- Contact Javascript File -->
-    <script src="mail/jqBootstrapValidation.min.js"></script>
-    <script src="mail/contact.js"></script>
 
-    <!-- Template Javascript -->
-    <script src="js/main.js"></script>
+  <!-- script bintang -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Contact Javascript File -->
+  <script src="mail/jqBootstrapValidation.min.js"></script>
+  <script src="mail/contact.js"></script>
+
+  <!-- Template Javascript -->
+  <script src="js/main.js"></script>
 </body>
 
 </html>
@@ -240,12 +453,10 @@ require 'koneksi.php';
     display: block;
   }
 
-  .filter{
+  .filter {
     width: 210px;
     margin-left: 45px;
   }
-
- 
 </style>
 
 <script>
@@ -298,7 +509,7 @@ toggle between hiding and showing the dropdown content */
       }
     });
   }
-  
+
   function cari() {
     var cari = $("#cari").val();
     var kategori = $("#kategori").val();

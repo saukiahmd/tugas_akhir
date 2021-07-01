@@ -90,8 +90,10 @@ require 'koneksi.php';
       $_SESSION["pembeli"] = $akun;
       $_SESSION["login"] = true;
       $_SESSION["username"] = $_POST['username'];
+      $_SESSION["id_pembeli"] = $akun["id_pembeli"];
       echo "<script>alert('anda sukses login');</script>";
 		  echo "<script>location='menu.php';</script>";
+      echo $_SESSION["id_pembeli"];
     }
     else
     {

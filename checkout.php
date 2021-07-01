@@ -106,18 +106,6 @@ if(empty($_SESSION["keranjang"]) or !isset($_SESSION["keranjang"]) )
 
             <form method="post">
 				
-				<div class="row">
-					<div class="col-md-4">
-						<div class="form-group">
-							<input type="text" readonly value="<?php echo $_SESSION["pembeli"]['nama_pembeli'] ?>" class="form-control">
-						</div>
-				</div>
-					<div class="col-md-4">
-						<div class="form-group">
-							<input type="text" readonly value="<?php echo $_SESSION["pembeli"]['nomor_pembeli'] ?>" class="form-control">
-						</div>
-					</div>
-				</div>
 			    <button class="btn btn-warning" name="checkout">Bayar</button>
             </form>
 
